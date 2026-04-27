@@ -6,7 +6,6 @@ This package contains the v1.5 specification document for KakuTeX, the browser-b
 
 - `spec/main.tex` : LuaLaTeX source of the specification
 - `kakutex-spec-v1.5.md` : markdown mirror used for fallback PDF generation
-- `dist/kakutex-spec-v1.5.pdf` : compiled or fallback-generated PDF
 - `Makefile` : local build entry point
 - `Dockerfile` : reproducible PDF build environment
 - `latexmkrc` : latexmk settings
