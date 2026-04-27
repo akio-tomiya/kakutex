@@ -94,7 +94,7 @@ app/                 Public web app entry point and bundled MathJax
 app/src/             Source modules used to build app/app.bundle.js
 docs/user_manual/    User manuals, HTML and PDF
 docs/admin_manual/   Deployment/admin manual, HTML and PDF
-docs/spec/           Specification source and generated PDF
+docs/spec/           Specification source
 examples/            Example body/macros/exported TeX/.texs archive
 tests/               Unit and smoke tests
 tools/               Build, document, screenshot, and package helpers
