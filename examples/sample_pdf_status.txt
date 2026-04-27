@@ -1,0 +1,1 @@
+exported_sample.pdf rebuilt with lualatex for KakuTeX v0.0.1

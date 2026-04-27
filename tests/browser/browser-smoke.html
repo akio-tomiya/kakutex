@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>KakuTeX browser smoke test</title>
+  </head>
+  <body>
+    <div id="result">pending</div>
+    <iframe id="app-frame" src="../../app/index.html" width="1200" height="900"></iframe>
+    <script type="module">
+      async function main() {
+        const result = document.getElementById('result');
+        const frame = document.getElementById('app-frame');
+        await new Promise((resolve, reject) => {
+          const timer = setTimeout(() => reject(new Error('timeout waiting for iframe')), 7000);
+          frame.addEventListener('load', async () => {
+            try {
+              const win = frame.contentWindow;
+              const app = () => win.__texsApp;
+              let attempts = 0;
+              while (!app() && attempts < 70) {
+                await new Promise((r) => setTimeout(r, 100));
+                attempts += 1;
+              }
+              if (!app()) throw new Error('app bridge missing');
+              app().loadModel({
+                body: String.raw`\section{Smoke}
+This is inline math $E=mc^2$.
+
+\begin{align}
+\Tr M &= 0
+\end{align}
+
+\begin{enumerate}
+\item Alpha
+\item Beta
+\end{enumerate}`,
+                macros: String.raw`\newcommand{\Tr}{\operatorname{Tr}}`,
+                locale: 'en',
+                fileName: 'smoke.texs'
+              });
+              await new Promise((r) => setTimeout(r, 1200));
+              const doc = frame.contentDocument;
+              const preview = doc.getElementById('preview-surface');
+              const mjx = preview.querySelector('mjx-container');
+              const blocks = preview.querySelectorAll('.preview-block');
+              const editor = doc.getElementById('body-editor');
+              const editorColor = win.getComputedStyle(editor).color;
+              const ok = mjx && blocks.length >= 4 && editorColor !== 'rgba(0, 0, 0, 0)' && !doc.getElementById('diagnostics-list').textContent.includes('Error');
+              clearTimeout(timer);
+              result.textContent = ok ? 'PASS' : 'FAIL';
+              result.dataset.blocks = String(blocks.length);
+              result.dataset.mathjax = String(Boolean(mjx));
+              result.dataset.editorColor = editorColor;
+              resolve();
+            } catch (error) {
+              clearTimeout(timer);
+              result.textContent = `FAIL: ${error.message}`;
+              resolve();
+            }
+          }, { once: true });
+        });
+      }
+      main();
+    </script>
+  </body>
+</html>

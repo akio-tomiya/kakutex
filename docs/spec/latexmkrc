@@ -1,0 +1,4 @@
+$lualatex = 'lualatex -interaction=nonstopmode -halt-on-error %O %S';
+$pdf_mode = 4;
+$max_repeat = 5;
+$recorder = 1;

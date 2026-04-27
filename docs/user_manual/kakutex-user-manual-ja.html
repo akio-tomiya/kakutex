@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KakuTeX ユーザーマニュアル</title>
+  <style>
+    :root { --bg: #f6f7fb; --card: #ffffff; --line: #d7dde5; --ink: #1f2937; --muted: #5b6475; --accent: #16324f; --soft: #eef3ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Inter", "Noto Sans JP", system-ui, sans-serif; color: var(--ink); background: linear-gradient(180deg, #f6f7fb 0%, #eef3ff 100%); }
+    .page { max-width: 960px; margin: 0 auto; padding: 24px 18px 44px; }
+    .manual-card { background: rgba(255,255,255,0.95); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 16px 36px rgba(15,23,42,0.08); overflow: hidden; }
+    .manual-header { padding: 22px 24px 16px; border-bottom: 1px solid var(--line); background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
+    .manual-header h1 { margin: 0; font-size: 1.8rem; color: var(--accent); }
+    .manual-nav { margin-top: 14px; display: grid; gap: 10px; }
+    .manual-lead { margin: 0; color: var(--muted); font-size: 0.95rem; }
+    .manual-chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .manual-chip { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 0 12px; border: 1px solid #b6c0d4; border-radius: 999px; text-decoration: none; color: var(--ink); background: #ffffff; }
+    .manual-body { padding: 20px 24px 30px; }
+    h1, h2, h3, h4 { color: var(--accent); scroll-margin-top: 16px; }
+    h2 { margin: 1.2em 0 0.55em; font-size: 1.32rem; }
+    h3 { margin: 1.05em 0 0.45em; font-size: 1.08rem; }
+    h4 { margin: 0.95em 0 0.38em; font-size: 0.98rem; }
+    p { margin: 0 0 0.75em; line-height: 1.72; }
+    ul, ol { margin: 0.2em 0 0.9em 1.4em; padding: 0; }
+    li { margin: 0.2em 0; line-height: 1.68; }
+    pre { margin: 0.4em 0 1em; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: #f6f8fa; overflow: auto; font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.92rem; line-height: 1.5; }
+    code { font-family: "SFMono-Regular", Consolas, monospace; background: #eef2ff; border-radius: 6px; padding: 0.1em 0.35em; }
+    @media (max-width: 720px) { .page { padding: 14px 12px 28px; } .manual-header, .manual-body { padding-left: 16px; padding-right: 16px; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <article class="manual-card">
+      <header class="manual-header">
+        <h1>KakuTeX ユーザーマニュアル</h1>
+        <div class="manual-nav"><p class="manual-lead">この HTML 版は Markdown から自動生成しています。PDF 版も同じ原稿から作っています。</p><div class="manual-chip-row"><a class="manual-chip" href="#basic-operations">基本操作</a><a class="manual-chip" href="#supported-tex-subset">対応構文</a><a class="manual-chip" href="#known-limitations">既知の制限</a><a class="manual-chip" href="#disclaimer">免責事項</a><a class="manual-chip" href="kakutex-user-manual-ja.pdf" target="_blank" rel="noopener noreferrer">PDF 版を開く</a></div></div>
+      </header>
+      <div class="manual-body">
+        <h1 id="kakutex">KakuTeX ユーザーマニュアル</h1>
+        <h2 id="1">1. 概要</h2>
+        <p>KakuTeX は、ブラウザだけで動く TeX サブセット用メモアプリです。左にソースを書き、右で即時プレビューを見ます。内部 LaTeX コンパイルは行わず、読みやすさを優先したプレビューを返します。</p>
+        <p>この版では、<code>.texs</code> の保存と読み込み、<code>.tex</code> の書き出し、右ペインの印刷経由 PDF 書き出し、引数なし <code>\newcommand</code>、ブロック単位 Sync、日本語 / 英語 UI、自動退避と未保存警告、版番号と作者情報を出す情報ダイアログ、HTML / PDF のヘルプ導線、もとに戻す、入力補助ツールバーを使えます。図表、BibTeX、複雑な LaTeX パッケージ、本物の組版再現は扱いません。</p>
+        <h2 id="2">2. 起動方法</h2>
+        <h3 id="local-startup">2.1 ローカル起動</h3>
+        <p>KakuTeX は <code>app/index.html</code> を静的サーバ経由で開くのを推奨します。配布 ZIP を展開したあと、プロジェクトのルートで次を実行してください。</p>
+        <pre><code>python3 -m http.server 8000</code></pre>
+        <p>そのあと、ブラウザで次を開きます。</p>
+        <pre><code>http://127.0.0.1:8000/app/</code></pre>
+        <p>この方法なら、MathJax の初期化、フォント、保存ダイアログ、印刷ダイアログ、相対リンクの挙動が安定します。初期サンプルも、余計な先頭インデントなしでこのまま読み込まれます。</p>
+        <h3 id="2-2-file">2.2 <code>file://</code> 直開きしたとき</h3>
+        <p><code>app/index.html</code> を Finder やエクスプローラから直接開くと、<code>file://</code> 直開きになります。この場合でも編集画面は出ますが、数式プレビューや印刷まわりが不安定になることがあります。画面上部に案内が出たら、本節と「10. 既知の制限」を参照してください。</p>
+        <p>現行版では、<code>file://</code> 直開き時に「静的サーバ経由で開いてください」という案内を出します。案内バナーのリンクは、HTML ヘルプの「2.1 ローカル起動」へ飛びます。完全な <code>file://</code> 対応は将来の改善項目です。</p>
+        <h2 id="3">3. 画面構成</h2>
+        <p>画面は上部メニュー、必要時だけ出る入力補助バー、左ペイン、中央の矢印 Sync ボタン、右ペインで構成されます。上部メニューは左側に操作ボタン、右側に KakuTeX の名前と版番号を置きます。左ペイン上段が本文ソース、下段が新規コマンド欄です。右ペイン上段がプレビュー、下段がエラーと警告です。状態メッセージは下部バーではなく、プレビュー見出しの右側に出します。情報ボタン、または右上の版番号を押すと、版番号、作者 <code>Akio Tomiya (with ChatGPT5.4)</code>、Web リンク、開発開始日を含むダイアログが開きます。ヘルプボタンは、現在の UI 言語に応じた HTML マニュアルを新しいタブで開き、すぐ使うことの多い「4. 基本操作」へ移動します。HTML 版の先頭には PDF 版へのリンクもあります。</p>
+        <p>左の本文欄、左下の新規コマンド欄、右上のプレビュー欄、右下の診断欄は、それぞれ内部スクロールします。縦に長い文書を扱うときは、ブラウザ全体ではなく各欄のスクロールバーを使ってください。</p>
+        <p>左エディタは表示の安定性を優先して通常の <code>textarea</code> を使っています。以前の overlay 型の簡易ハイライトは、ブラウザによって文字が見えにくくなることがあったため、この版では外しています。</p>
+        <h2 id="basic-operations">4. 基本操作</h2>
+        <h3 id="4-1">4.1 新規作成</h3>
+        <p><code>新規</code> を押すと初期サンプルに戻ります。未保存の変更がある場合はブラウザの確認ダイアログが出ます。</p>
+        <h3 id="4-2-texs">4.2 <code>.texs</code> を開く</h3>
+        <p><code>開く .texs</code> から保存済みアーカイブを選びます。初版アプリは、自分で保存した store-only 形式の ZIP ベース <code>.texs</code> を確実に読めます。</p>
+        <h3 id="4-3-texs">4.3 <code>.texs</code> を保存する</h3>
+        <p><code>保存 .texs</code> は現在の本文、マクロ、UI 設定、メタ情報を 1 つの <code>.texs</code> として保存します。対応ブラウザで <code>https:</code> または <code>localhost</code> / <code>127.0.0.1</code> から開いている場合は、ネイティブの保存ダイアログが開き、保存先とファイル名を選べます。対応していない環境では、通常のブラウザダウンロードへフォールバックします。</p>
+        <h3 id="4-4-tex">4.4 <code>.tex</code> を書き出す</h3>
+        <p><code>書き出し .tex</code> は最小構成の <code>.tex</code> を作ります。英語だけのノートでは軽い前置きのままにし、日本語が本文またはマクロに含まれるときだけ、LuaLaTeX 経路で <code>luatexja</code> を条件付きで入れます。対応ブラウザでは保存先とファイル名を選ぶダイアログが開きます。</p>
+        <p>推奨コンパイル経路は次です。</p>
+        <pre><code>lualatex exported_file.tex</code></pre>
+        <p>代替として、DVI 経路も使えます。</p>
+        <pre><code>uplatex exported_file.tex
+# または
+platex exported_file.tex
+
+dvipdfmx exported_file.dvi</code></pre>
+        <p><code>pxjahyper</code> は既定では自動挿入しません。あとから自分で <code>hyperref</code> を追加し、しかも (u)pLaTeX 経路を使う場合に限って、必要に応じて組み合わせてください。</p>
+        <h3 id="4-5-pdf">4.5 PDF を書き出す</h3>
+        <p><code>印刷 / PDF</code> は現在のブラウザ画面に対して印刷ダイアログを開きます。印刷時は CSS でソース欄、Sync、診断欄などを隠し、右ペイン中心のレイアウトに切り替えます。そこで「PDF に保存」を選ぶ方式です。したがって、これは LaTeX で組版した PDF ではなく、プレビュー画面の PDF 化です。</p>
+        <h3 id="4-6">4.6 もとに戻す</h3>
+        <p><code>もとに戻す</code> は、最後に操作していた入力欄に対して 1 段前の状態へ戻します。本文欄と新規コマンド欄で、それぞれ簡易 snapshot 履歴を持っています。現行版は redo までは持ちません。</p>
+        <h3 id="4-7">4.7 入力補助</h3>
+        <p><code>入力補助</code> を押すと、上部メニューの下に 2 段目のツールバーが出ます。現行版では、次のスニペットをカーソル位置へ挿入できます。</p>
+        <ul>
+          <li><code>数式</code>: <code>\begin{align} ... \end{align}</code></li>
+          <li><code>分数</code>: <code>\frac{1}{2}</code></li>
+          <li><code>和</code>: <code>\sum_{i=1}^{N}</code></li>
+          <li><code>積分</code>: <code>\int_{}^{} \mathrm{d}x</code></li>
+        </ul>
+        <p>もう一度押して <code>シンプル</code> に戻すと、2 段目ツールバーは隠れます。入力補助の表示状態は autosave と <code>.texs</code> の <code>ui.json</code> に保存されます。</p>
+        <h3 id="4-8">4.8 言語切替</h3>
+        <p>初回起動時の UI 言語はブラウザ言語から決めます。ブラウザ側が日本語なら日本語 UI、それ以外は英語 UI で始めます。右上の言語ボタンで、いつでも日本語と英語を切り替えられます。本文とマクロの内容は変わりません。</p>
+        <h3 id="4-9">4.9 情報ダイアログ</h3>
+        <p><code>情報</code> ボタン、または右上の版番号を押すと、About 風のダイアログが開きます。ここには現在の版番号、開発開始日 <code>2026-04-19</code>、作者 <code>Akio Tomiya (with ChatGPT5.4)</code>、作者ページへのリンク、免責事項へのリンクが出ます。公開版の確認や配布物の版確認に使ってください。</p>
+        <h3 id="4-10">4.10 ヘルプ</h3>
+        <p><code>ヘルプ</code> は新しいタブで HTML マニュアルを開きます。日本語 UI のときは日本語版、英語 UI のときは英語版を開きます。リンク先は「4. 基本操作」にアンカーで飛ぶので、起動後すぐ必要になる操作を見つけやすくしています。HTML 版の上部には PDF 版へのリンクもあります。</p>
+        <h2 id="5-sync">5. Sync の使い方</h2>
+        <p>中央の <code>→</code> は、左エディタのカーソル位置に最も近いブロックへ右側を移動します。中央の <code>←</code> は、右側で選択したブロックに応じて左のソース位置へ戻ります。右ペインのブロックを直接クリックしても左へ戻れます。</p>
+        <p>Sync は文字単位ではなくブロック単位です。段落、見出し、数式ブロック、リストの単位で移動するので、厳密なカーソル位置一致は狙っていません。</p>
+        <h2 id="supported-tex-subset">6. 対応している TeX サブセット</h2>
+        <h3 id="6-1">6.1 見出し</h3>
+        <ul>
+          <li><code>\section{...}</code></li>
+          <li><code>\subsection{...}</code></li>
+          <li><code>\subsubsection{...}</code></li>
+          <li><code>\paragraph{...}</code></li>
+        </ul>
+        <p>プレビューでは見出し番号を自動で付けます。<code>\paragraph</code> は独立した小見出しとして描画し、番号は付けません。</p>
+        <h3 id="6-2">6.2 テキストコマンド</h3>
+        <p>現行版では、本文中の <code>\LaTeX</code> と <code>\TeX</code> を text command として扱います。これはプレーンテキストの見出しや段落中で自然に見せるための限定対応です。</p>
+        <h3 id="6-3">6.3 数式</h3>
+        <p>インライン数式は <code>$...$</code> と <code>\(...\)</code> を使えます。ディスプレイ数式は <code>$$...$$</code>、<code>\[...\]</code>、<code>equation</code>、<code>equation*</code>、<code>align</code>、<code>align*</code>、<code>gather</code>、<code>gather*</code> を使えます。</p>
+        <p><code>eqnarray</code> と <code>eqnarray*</code> は互換レイヤで <code>align</code> 相当へ変換してプレビューします。古いメモの救済用です。エラー欄には互換表示の情報が出ます。</p>
+        <p>段落中の <code>\\</code> は明示改行として扱います。数式の中では従来どおり改行として働きます。<code>\slashed{...}</code> は組み込みマクロとして扱います。</p>
+        <h3 id="6-4">6.4 リスト</h3>
+        <p><code>itemize</code> と <code>enumerate</code> を使えます。各 <code>\item</code> の中に段落、インライン数式、ディスプレイ数式、入れ子のリストを書けます。</p>
+        <h3 id="6-5">6.5 新規コマンド</h3>
+        <p>新規コマンド欄では、引数なし <code>\newcommand</code> だけを受け付けます。次のような定義を想定しています。</p>
+        <pre><code>\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Det}{\operatorname{Det}}</code></pre>
+        <p>引数付き <code>\newcommand</code> は初版では警告対象です。<code>\slashed{...}</code> はアプリ内蔵マクロとして扱います。</p>
+        <p>また、<code>align</code> の中に <code>enumerate</code> や <code>\item</code> を入れるような文書用構文の混入は、プレビューが崩れても無言で流さず、エラーと警告に出します。<code>$\info$</code> のような未定義コマンド、裸の <code>#</code>、不完全な <code>\frac_</code>、<code>itemize</code> / <code>enumerate</code> の外の <code>\item</code> も、初版ではヒューリスティックに検出して診断欄へ出します。</p>
+        <h2 id="7">7. 入力例</h2>
+        <p>本文の例です。初期表示もこの英語サンプルです。</p>
+        <pre><code>\section{Introduction}
+KakuTeX is a web app for a subset of \LaTeX with fast rendering.\\
+Hard line breaks work, and inline math such as $E=mc^2$ is supported.
+日本語も使えます。
+
+\subsection{Linear algebra}
+\begin{align}
+\Tr M &amp;= 0 \\
+\Det A &amp;= 1 \\
+\slashed{D} &amp;= \gamma^\mu A_\mu \\
+\int \mathrm{d}x \; \sin x &amp;= -\cos x + C
+\end{align}
+
+\begin{itemize}
+\item First bullet item
+\item Second bullet item
+\end{itemize}
+
+\subsubsection{Subsubsection}
+\paragraph{Paragraph} This is a short paragraph heading example.</code></pre>
+        <p>新規コマンド欄の例です。</p>
+        <pre><code>\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Det}{\operatorname{Det}}</code></pre>
+        <h2 id="8-texs">8. <code>.texs</code> 形式</h2>
+        <p><code>.texs</code> は ZIP ベースのコンテナです。初版では次の 4 ファイルを入れます。</p>
+        <ul>
+          <li><code>body.tex</code></li>
+          <li><code>macros.tex</code></li>
+          <li><code>ui.json</code></li>
+          <li><code>meta.json</code></li>
+        </ul>
+        <p><code>ui.json</code> には <code>locale</code> と <code>inputAssist</code> を入れます。<code>meta.json</code> には形式名、生成器、作成時刻、更新時刻、ファイル名などが入ります。</p>
+        <h2 id="9">9. 自動退避と未保存警告</h2>
+        <p>編集内容は <code>localStorage</code> に自動退避されます。ブラウザやタブを閉じるときに未保存の変更があれば警告が出ます。ただし、警告文自体はブラウザ依存で、完全に自由な文章にはなりません。</p>
+        <h2 id="known-limitations">10. 既知の制限</h2>
+        <ul>
+          <li>図表、参考文献、BibTeX、複雑な LaTeX パッケージは未対応です。</li>
+          <li><code>\newcommand</code> は引数なしだけです。</li>
+          <li>Sync は文字単位ではなくブロック単位です。</li>
+          <li>PDF 出力はプレビュー印刷であり、LaTeX 組版の PDF ではありません。</li>
+          <li>初版の <code>.texs</code> 読み込みは、自アプリで保存した store-only ZIP を優先します。</li>
+          <li>左エディタは表示安定性を優先しており、構文色分けは持ちません。</li>
+          <li><code>file://</code> 直開きは案内表示つきで動作を継続しますが、完全対応は未了です。安定利用は「2.1 ローカル起動」の手順を使ってください。</li>
+          <li><code>\slashed</code> の見た目は簡易実装であり、複雑な引数で LaTeX と完全一致はしません。</li>
+          <li>保存先とファイル名を選ぶダイアログは、対応ブラウザかつ secure context で有効です。非対応環境ではダウンロードへフォールバックします。</li>
+          <li><code>もとに戻す</code> は簡易履歴であり、redo はまだありません。</li>
+        </ul>
+        <h2 id="disclaimer">11. 免責事項</h2>
+        <p>この日本語マニュアルの本節が免責事項です。日本語 UI の情報ダイアログからも、この節へ直接移動できます。</p>
+        <p>KakuTeX は研究ノートや個人メモのための軽量ツールです。表示内容、数式プレビュー、<code>.tex</code> 書き出し、ブラウザ印刷 PDF は、正確性・完全性・特定目的への適合性を保証するものではありません。重要な研究成果、投稿原稿、業務文書、講義資料などに使う場合は、必ず利用者自身が内容、式、エラー、書き出し後の <code>.tex</code>、コンパイル済み PDF を確認してください。</p>
+        <p>このアプリは LaTeX 全体を実装するものではなく、対応しているのは限定されたサブセットです。未対応構文、ブラウザ差、MathJax の挙動差、TeX 環境差、ローカルパッケージ不足、保存先ダイアログのブラウザ依存などにより、表示や書き出し結果が期待と異なることがあります。KakuTeX の利用によって生じたデータ損失、誤記、コンパイル失敗、研究・業務上の損害について、作者および開発補助者は責任を負いません。</p>
+        <p>機密情報や個人情報を入力する場合は、公開場所、ブラウザ、保存先、<code>.texs</code> ファイル、ローカルストレージの扱いを利用者自身で確認してください。KakuTeX は広告、クラウド保存、外部送信を前提としませんが、公開サーバへ設置した場合のアクセス制御や配布管理は設置者の責任です。</p>
+      </div>
+    </article>
+  </div>
+</body>
+</html>

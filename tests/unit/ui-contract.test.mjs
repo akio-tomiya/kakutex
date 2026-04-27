@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(HERE, '../..');
+
+test('editor markup and styles keep source text visibly rendered and expose direct-open guidance', async () => {
+  const html = await readFile(join(ROOT, 'app/index.html'), 'utf8');
+  const css = await readFile(join(ROOT, 'app/styles.css'), 'utf8');
+  const i18n = await readFile(join(ROOT, 'app/src/i18n.js'), 'utf8');
+
+  assert.match(html, /<title>KakuTeX<\/title>/);
+  assert.ok(!html.includes('editor-highlight'));
+  assert.match(html, /id="protocol-warning"/);
+  assert.match(html, /id="about-dialog"/);
+  assert.match(html, /id="about-btn"/);
+  assert.match(html, /id="about-disclaimer-link"/);
+  assert.match(html, /about-disclaimer-label">免責事項/);
+  assert.match(html, /kakutex-user-manual-ja\.html#disclaimer/);
+  assert.match(html, /id="help-btn"/);
+  assert.match(html, /id="help-btn"[^>]+href="\.\.\/docs\/user_manual\/kakutex-user-manual-en\.html#basic-operations"/);
+  assert.match(html, /src="\.\/app\.bundle\.js\?v=0\.0\.1"/);
+  assert.match(html, /id="version-pill"/);
+  assert.match(html, /app\.bundle\.js/);
+  assert.doesNotMatch(html, /id=\"autosave-status\"/);
+  assert.match(html, /id=\"status-message\" class=\"preview-status\"/);
+  assert.doesNotMatch(html, /<footer class=\"statusbar\">/);
+  assert.ok(!/color\s*:\s*transparent/.test(css));
+  assert.match(css, /#body-editor[\s\S]*color:\s*var\(--text\)/);
+  assert.match(css, /#body-editor[\s\S]*overflow:\s*auto/);
+  assert.match(css, /#body-editor[\s\S]*scrollbar-gutter:\s*stable/);
+  assert.match(css, /\.preview-surface[\s\S]*overflow:\s*auto/);
+  assert.match(css, /\.diagnostics-list[\s\S]*overflow:\s*auto/);
+  assert.match(css, /\.protocol-warning\[hidden\]\s*\{\s*display:\s*none\s*!important;/);
+  assert.match(css, /::-webkit-scrollbar/);
+  assert.match(i18n, /sourceSubtitle:\s*''/);
+  assert.match(i18n, /previewSubtitle:\s*''/);
+  assert.match(i18n, /macroTitle:\s*'新規コマンド'/);
+  assert.match(i18n, /aboutDialogTitle:/);
+  assert.match(i18n, /aboutBtn:/);
+  assert.match(i18n, /aboutDisclaimerText:\s*'利用上の注意と免責事項を開く'/);
+  assert.match(i18n, /aboutDisclaimerText:\s*'Open usage notes and disclaimer'/);
+  assert.match(i18n, /helpBtn:/);
+  assert.match(i18n, /syncToPreview:\s*'→'/);
+  assert.match(i18n, /syncToPreviewTitle:/);
+  assert.match(i18n, /diagnosticsSubtitle:\s*''/);
+});

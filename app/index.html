@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>KakuTeX</title>
+    <meta name="description" content="Browser-based TeX subset memo app with live preview.">
+    <link rel="stylesheet" href="./styles.css">
+    <script>
+      window.MathJax = {
+        options: { skipHtmlTags: {"[-]": ["code", "pre"]}, renderActions: { addMenu: [] } },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']],
+          processEscapes: true,
+          processEnvironments: true,
+          packages: {'[+]': ['ams', 'newcommand']},
+          macros: { slashed: [String.raw`{\not\!#1}`, 1] }
+        },
+        chtml: { fontURL: './vendor/mathjax/output/chtml/fonts/woff-v2' },
+        startup: { typeset: false }
+      };
+    </script>
+    <script defer src="./vendor/mathjax/es5/tex-chtml-full.js"></script>
+    <script defer src="./app.bundle.js?v=0.0.1"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="protocol-warning" id="protocol-warning" hidden>
+        <div class="protocol-warning-main">
+          <strong id="protocol-warning-title">file:// 直開きでは一部機能が不安定です。</strong>
+          <p id="protocol-warning-body">ユーザーマニュアルの「2.1 ローカル起動」と「10. 既知の制限」を参照し、静的サーバ経由で開いてください。</p>
+        </div>
+        <div class="protocol-warning-meta">
+          <span class="protocol-warning-label" id="protocol-warning-command-label">推奨起動</span>
+          <code id="protocol-warning-command">python3 -m http.server 8000</code>
+          <a id="protocol-warning-url" href="http://127.0.0.1:8000/app/" target="_blank" rel="noopener">http://127.0.0.1:8000/app/</a>
+          <a id="protocol-warning-doc" href="../docs/user_manual/kakutex-user-manual-ja.html#local-startup" target="_blank" rel="noopener noreferrer">ローカル起動のヘルプ</a>
+        </div>
+      </aside>
+      <header class="topbar">
+        <div class="menu-buttons">
+          <button type="button" id="new-note-btn">New</button>
+          <button type="button" id="open-texs-btn">Open .texs</button>
+          <button type="button" id="save-texs-btn">Save .texs</button>
+          <button type="button" id="export-tex-btn">Export .tex</button>
+          <button type="button" id="export-pdf-btn">Print / PDF</button>
+          <button type="button" id="about-btn">Info</button>
+          <a id="help-btn" class="menu-link" href="../docs/user_manual/kakutex-user-manual-en.html#basic-operations" target="_blank" rel="noopener noreferrer">Help</a>
+          <button type="button" id="assist-toggle-btn">Assist</button>
+          <button type="button" id="locale-toggle-btn">日本語</button>
+        </div>
+        <div class="brand-group">
+          <button type="button" id="undo-btn" class="brand-undo-button">Undo</button>
+          <span class="dirty-indicator" id="dirty-indicator" hidden>Unsaved</span>
+          <button type="button" class="version-pill version-button" id="version-pill">v0.0.1</button>
+          <h1 class="brand">KakuTeX</h1>
+        </div>
+      </header>
+      <div class="assist-toolbar" id="assist-toolbar" hidden>
+        <button type="button" data-assist-kind="math" data-assist-key="assistMath">Math</button>
+        <button type="button" data-assist-kind="frac" data-assist-key="assistFrac">Fraction</button>
+        <button type="button" data-assist-kind="sum" data-assist-key="assistSum">Sum</button>
+        <button type="button" data-assist-kind="integral" data-assist-key="assistIntegral">Integral</button>
+      </div>
+      <main class="workspace">
+        <section class="pane source-pane">
+          <div class="pane-header">
+            <div class="pane-main">
+              <h2 id="source-pane-title">ソース</h2>
+              <p class="pane-subtitle" id="source-pane-subtitle" hidden></p>
+            </div>
+            <div class="pane-meta">
+              <span class="filename-chip" id="filename-chip">現在のファイル: note.texs</span>
+            </div>
+          </div>
+          <div class="editor-stack" id="editor-stack">
+            <textarea id="body-editor" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+          </div>
+          <div class="panel-bottom macros-panel">
+            <div class="subpanel-header inline-header">
+              <h3 id="macro-panel-title">新規コマンド</h3>
+              <p id="macro-panel-subtitle">引数なしの \newcommand のみを扱います。</p>
+            </div>
+            <textarea id="macro-editor" class="secondary-editor" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+          </div>
+        </section>
+        <aside class="sync-rail">
+          <button type="button" id="sync-to-preview-btn" class="sync-button" aria-label="プレビューへ移動">→</button>
+          <button type="button" id="sync-to-source-btn" class="sync-button secondary" aria-label="ソースへ移動">←</button>
+        </aside>
+        <section class="pane preview-pane">
+          <div class="pane-header preview-pane-header">
+            <div class="pane-main">
+              <h2 id="preview-pane-title">プレビュー</h2>
+              <p class="pane-subtitle" id="preview-pane-subtitle" hidden></p>
+            </div>
+            <span id="status-message" class="preview-status" aria-live="polite">準備中です。</span>
+          </div>
+          <div class="preview-surface" id="preview-surface" tabindex="0"></div>
+          <div class="panel-bottom diagnostics-panel">
+            <div class="subpanel-header">
+              <h3 id="diagnostics-title">エラーと警告</h3>
+              <p id="diagnostics-subtitle" hidden></p>
+            </div>
+            <div id="diagnostics-list" class="diagnostics-list"></div>
+          </div>
+        </section>
+      </main>
+      <input id="texs-file-input" type="file" accept=".texs,.zip" hidden>
+      <dialog id="about-dialog" class="about-dialog">
+        <form method="dialog" class="about-card">
+          <button type="submit" class="about-close" id="about-close-btn" aria-label="Close">×</button>
+          <div class="about-app-name" id="about-dialog-title">About KakuTeX</div>
+          <div class="about-mark">KakuTeX</div>
+          <div class="about-tagline" id="about-tagline">TeX subset memo app</div>
+          <div class="about-meta-grid">
+            <div class="about-label" id="about-version-label">Version</div>
+            <div class="about-value" id="about-version-value">v0.0.1</div>
+            <div class="about-label" id="about-started-label">Development started</div>
+            <div class="about-value" id="about-started-value">2026-04-19</div>
+            <div class="about-label" id="about-author-label">Author</div>
+            <div class="about-value"><a id="about-author-link" href="https://www2.yukawa.kyoto-u.ac.jp/~akio.tomiya/" target="_blank" rel="noopener">Akio Tomiya (with ChatGPT5.4)</a></div>
+            <div class="about-label" id="about-link-label">Web</div>
+            <div class="about-value"><a id="about-home-link" href="https://www2.yukawa.kyoto-u.ac.jp/~akio.tomiya/" target="_blank" rel="noopener">https://www2.yukawa.kyoto-u.ac.jp/~akio.tomiya/</a></div>
+            <div class="about-label" id="about-disclaimer-label">免責事項</div>
+            <div class="about-value"><a id="about-disclaimer-link" href="../docs/user_manual/kakutex-user-manual-ja.html#disclaimer" target="_blank" rel="noopener noreferrer">利用上の注意と免責事項を開く</a></div>
+          </div>
+          <div class="about-actions">
+            <button type="submit" class="about-ok-btn" id="about-ok-btn">Close</button>
+          </div>
+        </form>
+      </dialog>
+    </div>
+    <script>
+      if (location.protocol === 'file:') {
+        const warning = document.getElementById('protocol-warning');
+        if (warning) warning.hidden = false;
+      }
+    </script>
+  </body>
+</html>

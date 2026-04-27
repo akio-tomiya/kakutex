@@ -1,0 +1,642 @@
+\documentclass[11pt,a4paper]{ltjsarticle}
+
+\usepackage[margin=22mm,headheight=15pt,footskip=11mm]{geometry}
+\usepackage[dvipsnames,table]{xcolor}
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{longtable,booktabs,tabularx,array}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable,listings}
+\usepackage{titlesec}
+\usepackage{needspace}
+\usepackage{amsmath,amssymb}
+\usepackage{fancyvrb}
+\usepackage{lastpage}
+\usepackage{listings}
+\usepackage{seqsplit}
+\usepackage{multirow}
+
+\definecolor{Accent}{HTML}{1F4E79}
+\definecolor{AccentDark}{HTML}{13324F}
+\definecolor{AccentLight}{HTML}{EAF2F8}
+\definecolor{SoftGray}{HTML}{F5F7FA}
+\definecolor{MidGray}{HTML}{657786}
+\definecolor{LineGray}{HTML}{D7DDE5}
+\definecolor{CodeBack}{HTML}{F6F8FA}
+\definecolor{WarnBack}{HTML}{FFF7E6}
+\definecolor{WarnLine}{HTML}{E0B04A}
+\definecolor{GoodBack}{HTML}{EFF8F0}
+\definecolor{GoodLine}{HTML}{6EAF6B}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=Accent,
+  urlcolor=Accent,
+  pdftitle={KakuTeX 仕様書 v1.5},
+  pdfauthor={OpenAI},
+  pdfsubject={仕様書},
+  pdfkeywords={KakuTeX, TeX, MathJax, memo, specification}
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlist[itemize]{topsep=0.2em,itemsep=0.2em,leftmargin=1.6em}
+\setlist[enumerate]{topsep=0.2em,itemsep=0.2em,leftmargin=1.8em}
+\renewcommand{\arraystretch}{1.28}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textsf{KakuTeX 仕様書}}
+\fancyhead[R]{\small\textsf{v1.5}}
+\fancyfoot[L]{\small\textsf{OpenAI}}
+\fancyfoot[R]{\small\thepage/\pageref*{LastPage}}
+
+\titleformat{\section}
+  {\Large\bfseries\sffamily\color{AccentDark}}
+  {\thesection}{0.8em}{}
+\titleformat{\subsection}
+  {\large\bfseries\sffamily\color{AccentDark}}
+  {\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\sffamily\color{AccentDark}}
+  {\thesubsubsection}{0.8em}{}
+
+\newcommand{\MUST}{\textsf{\textbf{MUST}}}
+\newcommand{\SHOULD}{\textsf{\textbf{SHOULD}}}
+\newcommand{\MAY}{\textsf{\textbf{MAY}}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\term}[1]{\textsf{\textbf{#1}}}
+\newcommand{\appname}{KakuTeX}
+\newcommand{\texs}{\code{.texs}}
+
+\newtcolorbox{decisionbox}[1][] {
+  breakable,
+  enhanced,
+  colback=AccentLight,
+  colframe=Accent,
+  boxrule=0.6pt,
+  arc=2mm,
+  left=2mm,right=2mm,top=1.6mm,bottom=1.6mm,
+  title=#1,
+  fonttitle=\bfseries\sffamily,
+  coltitle=AccentDark
+}
+
+\newtcolorbox{warningbox}[1][] {
+  breakable,
+  enhanced,
+  colback=WarnBack,
+  colframe=WarnLine,
+  boxrule=0.6pt,
+  arc=2mm,
+  left=2mm,right=2mm,top=1.6mm,bottom=1.6mm,
+  title=#1,
+  fonttitle=\bfseries\sffamily
+}
+
+\newtcolorbox{goodbox}[1][] {
+  breakable,
+  enhanced,
+  colback=GoodBack,
+  colframe=GoodLine,
+  boxrule=0.6pt,
+  arc=2mm,
+  left=2mm,right=2mm,top=1.6mm,bottom=1.6mm,
+  title=#1,
+  fonttitle=\bfseries\sffamily
+}
+
+\newtcblisting{codeblock}[1][] {
+  breakable,
+  enhanced,
+  colback=CodeBack,
+  colframe=LineGray,
+  boxrule=0.6pt,
+  arc=1.5mm,
+  listing only,
+  listing engine=listings,
+  listing options={
+    basicstyle=\ttfamily\small,
+    columns=fullflexible,
+    keepspaces=true,
+    breaklines=true,
+    showstringspaces=false,
+    upquote=true
+  },
+  left=1.5mm,right=1.5mm,top=1.2mm,bottom=1.2mm,
+  fonttitle=\bfseries\sffamily,
+  title=#1
+}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}m{#1}}
+
+\begin{document}
+
+\begin{titlepage}
+\thispagestyle{empty}
+{\sffamily\color{AccentDark}
+\vspace*{1.6cm}
+
+{\fontsize{26}{30}\selectfont\bfseries \appname}\\[0.35em]
+{\fontsize{24}{28}\selectfont\bfseries ブラウザ版 TeX サブセット・メモアプリ}\\[0.5em]
+{\fontsize{22}{26}\selectfont\bfseries 仕様書}\\[0.9em]
+
+{\Large v1.5}\\[0.5em]
+{\large 2026-04-20}
+}
+
+\vspace{1.1cm}
+
+\begin{decisionbox}[文書の位置付け]
+本仕様書は、\appname の初版実装を迷わず進めるための固定仕様である。対象は、ブラウザだけで動く静的 Web アプリであり、内部 LaTeX コンパイルは行わない。通常利用はネット接続下の静的ホスト公開を本線としつつ、同一成果物からオフライン配布版も切り出せる構成を採る。
+\end{decisionbox}
+
+\vspace{0.4cm}
+
+\begin{tabularx}{\textwidth}{L{0.22\textwidth}Y}
+\toprule
+\rowcolor{AccentLight}
+\textbf{項目} & \textbf{固定内容} \\
+\midrule
+主目的 & 左に TeX 風ソース、右に即時プレビューを持つメモ用アプリを提供する。\\
+描画方式 & 本文構造はアプリ側で扱い、数式は MathJax 3 に渡して描画する。\\
+保存形式 & 独自拡張子 \texs。実体は zip。中に \code{body.tex}, \code{macros.tex}, \code{ui.json}, \code{meta.json} を格納する。\\
+書き出し & \code{.tex} 書き出し、右ペインのプレビュー PDF 書き出し。\\
+同期 & 左右の相互移動は文字位置ではなくブロック単位で行う。\\
+公開運用 & 主たる公開形態は個人ホームページ等の静的 Web 公開。ソースの正本は GitHub に置く。\\
+オフライン方針 & runtime の第三者 CDN や外部 API に依存しない成果物を作り、同一 build から配布 ZIP を生成可能にする。\\
+非目標 & 本物の LaTeX コンパイル、複雑なパッケージ対応、図表、BibTeX、厳密なページ組版、完全な位置同期。\\
+\bottomrule
+\end{tabularx}
+
+\vfill
+
+\begin{goodbox}[参照実装の位置付け]
+本仕様書は、同梱された参照実装 \code{app/} と整合するように書かれている。参照実装は HTML/CSS/JavaScript + MathJax 3 を使い、左エディタには表示安定性を優先して通常の \code{textarea} を採用する。以前の overlay 型簡易ハイライトは、一部ブラウザで表示が崩れやすかったため、現行版では外している。情報ダイアログは HTML の \code{<dialog>} を優先し、未対応環境では \code{alert()} へフォールバックする。情報ダイアログにはユーザーマニュアルの免責事項セクションへのリンクを持たせる。
+\end{goodbox}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{目的と設計方針}
+
+\appname の主目的は、TeX 文書そのものを完全再現することではなく、数式を多用するメモをブラウザ上で軽く書き、すぐ確認し、\texs と \code{.tex} で持ち運べるようにすることである。したがって、設計は「軽い」「壊れにくい」「再利用しやすい」の 3 点を優先する。
+
+\begin{decisionbox}[最重要の割り切り]
+本アプリは本物の TeX エンジンではない。文書全体を TeX として完全解釈する代わりに、見出し、段落、数式ブロック、リストを切り出す軽量なブロック分割器を持ち、数式部分だけを MathJax に任せる。これにより、入力途中の壊れた文書でも、他の部分のプレビューを継続できる。
+\end{decisionbox}
+
+\subsection{設計目標}
+
+設計目標は 5 点である。第 1 に、入力停止後すぐに右ペインが更新される体感速度を保つこと。第 2 に、未完成入力や未対応構文があっても、文書全体が崩れず編集を継続できること。第 3 に、\texs と \code{.tex} の責務を明確に分けること。第 4 に、ブロック単位 Sync、未保存警告、自動退避など、日常使用で効く機能を初版に入れること。第 5 に、静的 Web ホストへの配置と GitHub 運用を最小コストで成立させることである。加えて、保存先とファイル名を選べる保存ダイアログと、配布物の版確認に使える情報ダイアログを整える。
+
+\subsection{非目標}
+
+初版では、図表、参考文献、BibTeX、TikZ、複雑なパッケージ読込、\code{\textbackslash label}/\code{\textbackslash ref} の整合、脚注、定理環境、完全なページ組版を扱わない。PDF 出力は右ペインのプレビュー印刷であり、LaTeX 組版の完全再現ではない。\code{\textbackslash newcommand} も引数なしだけに制限する。
+
+\section{配布形態と運用}
+
+\subsection{主たる公開形態}
+
+主たる利用形態は、ネット接続下で個人ホームページ等の静的ホストに \code{app/} を配置してブラウザで開くことである。右上の版番号はクリック可能であり、Info ボタンと同じ情報ダイアログを開く。Help ボタンは新しいタブでローカライズされた HTML ユーザーマニュアルを開く。ユーザーマニュアルは免責事項セクションを持ち、情報ダイアログからも参照できる。実装はバックエンド不要でなければならず、ブラウザ上のファイル API、\code{localStorage}、印刷機能だけで完結する。アセット参照は相対パスとし、サブディレクトリ配置でも動作することを必須とする。
+
+\subsection{GitHub とオフライン配布}
+
+ソースの正本は GitHub リポジトリに置く。公開版はその build 成果物の一部、オフライン配布版は同一成果物を zip 化したものとする。公開版と配布版でアプリ本体のコードパスを分岐させてはならない。違いは配り方だけに留める。
+
+\begin{table}[h]
+\centering
+\caption{想定 deliverable}
+\begin{tabularx}{\textwidth}{L{0.23\textwidth}L{0.16\textwidth}Y}
+\toprule
+\rowcolor{AccentLight}
+\textbf{成果物} & \textbf{必須度} & \textbf{内容} \\
+\midrule
+\code{app/} & \MUST & 公開用の静的 Web アプリ本体。\\
+\code{dist/kakutex-*.zip} & \MUST & アプリ、文書類、ログ、サンプル、テストをまとめた受け取り用 ZIP。\\
+\code{examples/exported\_sample.pdf} & \SHOULD & \code{examples/exported\_sample.tex} を LuaLaTeX で確認した PDF。\\
+\code{docs/spec/} & \MUST & 仕様書の TeX ソースと PDF。\\
+\code{docs/user\_manual/} & \MUST & ユーザー向けマニュアル。Markdown を正本とし、日本語 / 英語の HTML と PDF を生成する。\\
+\code{docs/admin\_manual/} & \MUST & 管理者向け導入マニュアル。\\
+\code{examples/} & \MUST & サンプル \texs, \code{.tex}, PDF。\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{画面仕様}
+
+\subsection{基本レイアウト}
+
+画面は上部メニュー、左ペイン、中央の Sync レール、右ペインで構成する。上部メニューは左に操作ボタン群、右にアプリ名と版番号を置く。左ペイン上段は本文エディタ、下段は新規コマンド欄である。右ペイン上段はプレビュー、下段は診断欄である。状態メッセージは独立した下部バーではなく、右ペイン見出しの右側へ表示する。Help ボタンは現在の UI 言語に応じた HTML ユーザーマニュアルを新しいタブで開き、\code{basic-operations} アンカーへ移動する。情報ダイアログは同じユーザーマニュアルの \code{disclaimer} アンカーへリンクする。
+
+各欄はブラウザ全体ではなく、ペイン内部でスクロールすることを前提とする。初回起動時は \code{navigator.languages} と \code{navigator.language} を見て、日本語系なら日本語 UI、それ以外は英語 UI を既定値とする。初期サンプル本文は UI 言語に関係なく英語で固定し、\verb|\slashed{D} = \gamma^\mu A_\mu| を含める。少なくとも本文欄、新規コマンド欄、プレビュー欄、診断欄は独立した内部スクロールを持ち、デスクトップ幅ではメイン領域が画面下端まで自然に伸びなければならない。さらに、\code{file://} 直開き時は UI を出した上で、静的サーバ利用を案内する警告を表示し、ローカル起動節へ飛ぶ HTML ヘルプリンクを提示しなければならない。
+
+\begin{decisionbox}[現行版のエディタ方針]
+左エディタは通常の \code{textarea} とする。overlay 型の簡易ハイライトは採用しない。理由は、透過文字 + 背景レイヤ方式がブラウザ差、IME 入力、スクロール同期で不安定になりやすく、参照実装では表示バグの主因だったためである。
+\end{decisionbox}
+
+\subsection{メニュー項目}
+
+初版の必須メニューは、\term{Undo}, \term{New}, \term{Open .texs}, \term{Save .texs}, \term{Export .tex}, \term{Print / PDF}, \term{Info}, \term{Help}, \term{Assist/Simple}, \term{Language} とする。\term{Assist} を押すと 2 段目の入力補助ツールバーを表示し、\term{Simple} に戻すと隠す。高度な設定画面は初版では不要であり、UI 設定は内部保存に留めてよい。
+
+\subsection{Sync}
+
+\subsection{Undo と入力補助}
+
+Undo は body と macros の軽量 snapshot 履歴を用いる。redo は初版では要求しない。入力補助は、\code{align}, \code{frac}, \code{sum}, \code{integral} の最小スニペットを最後にフォーカスしていたエディタのカーソル位置へ挿入する。入力補助バーの表示状態は UI 状態として保存可能とする。
+
+\subsection{Sync}
+
+Sync は文字位置ではなくブロック単位で行う。中央レールの小型矢印ボタン \code{→} は、カーソル位置が属するブロックを求め、対応するプレビューブロックへスクロールする。\code{←} は、プレビューブロックの \code{data-block-id} から対応ソース範囲を取り出し、左エディタをその近傍へスクロールする。
+
+\subsection{未保存警告と自動退避}
+
+dirty フラグが立っている状態でタブやウィンドウを閉じるときは、\code{beforeunload} を用いて標準の未保存警告を出す。文言はブラウザ依存であり、完全に自由な文章は要求しない。自動退避は \code{localStorage} に保存し、再読み込み時に復元する。
+
+\begin{warningbox}[ブラウザ制約]
+\code{beforeunload} では、昔のように任意の長い説明文を表示できないブラウザが多い。仕様上は「警告が出ること」を要求し、文言の完全制御は要求しない。
+\end{warningbox}
+
+\section{データモデルと保存形式}
+
+\subsection{アプリ内状態}
+
+アプリ内状態は文書状態、UI 状態、実行時状態に分ける。文書状態と一部 UI 状態は \texs に保存し、実行時状態は保存しない。
+
+\begin{codeblock}[推奨型定義]
+type Locale = "ja" | "en";
+
+interface DocumentState {
+  body: string;
+  macros: string;
+  fileName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface UIState {
+  locale: Locale;
+  inputAssist: boolean;
+}
+
+interface RuntimeState {
+  blocks: Block[];
+  diagnostics: Diagnostic[];
+  selectedBlockId: string | null;
+  lastSavedSignature: string;
+  lastFocusedEditor: "body" | "macro";
+}
+\end{codeblock}
+
+\subsection{\texs コンテナ仕様}
+
+\texs は zip 実体の独自拡張子であり、UTF-8 を用いる。初版参照実装は store method のみを自前実装している。ルート直下には \code{body.tex}, \code{macros.tex}, \code{ui.json}, \code{meta.json} の 4 ファイルを置く。
+
+\begin{table}[h]
+\centering
+\caption{\texs コンテナの必須ファイル}
+\begin{tabularx}{\textwidth}{L{0.21\textwidth}L{0.16\textwidth}Y}
+\toprule
+\rowcolor{AccentLight}
+\textbf{ファイル} & \textbf{形式} & \textbf{内容} \\
+\midrule
+\code{body.tex} & UTF-8 テキスト & 本文ソース。改行は LF に正規化する。\\
+\code{macros.tex} & UTF-8 テキスト & 新規コマンド欄のソース。\\
+\code{ui.json} & JSON & 現行版では \code{locale} と \code{inputAssist} を保持する。\\
+\code{meta.json} & JSON & 形式名、版、生成器、作成時刻、更新時刻、ファイル名など。\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{codeblock}[meta.json の例]
+{
+  "format": "texs",
+  "version": 1,
+  "generator": "kakutex 0.0.1",
+  "createdAt": "2026-04-19",
+  "updatedAt": "2026-04-19",
+  "fileName": "sample_note.texs",
+  "appName": "KakuTeX"
+}
+\end{codeblock}
+
+\subsection{\code{.tex} 書き出し仕様}
+
+\code{.tex} 書き出しは、英語だけのノートでは軽い前置きのまま返し、日本語を検出した場合だけ LuaLaTeX 経路で \code{luatexja} を条件付き挿入する。対応ブラウザかつ secure context では、\code{.texs} 保存と \code{.tex} 書き出しに \code{showSaveFilePicker()} を使い、ファイル名と保存先を選べるようにする。非対応環境では通常ダウンロードへフォールバックしてよい。本文は \code{body.tex} 相当、新規コマンド欄は前置きへ挿入する。\code{pxjahyper} は既定では挿入しない。利用者が (u)pLaTeX 経路で \code{hyperref} を追加する場合の補助候補としてマニュアルで説明する。
+
+\begin{codeblock}[書き出し \code{.tex} の形]
+% Generated by KakuTeX
+% Recommended engines:
+% - Primary tested path: lualatex exported_file.tex
+% - If Japanese text is detected, luatexja is inserted only on the LuaLaTeX path.
+% - Alternative DVI path: uplatex exported_file.tex or platex exported_file.tex, then dvipdfmx exported_file.dvi.
+% - pxjahyper is not inserted by default. Add it only when you also add hyperref under (u)pLaTeX.
+\documentclass[11pt]{article}
+<Japanese-only conditional luatexja block>
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{slashed}
+\usepackage{geometry}
+\geometry{margin=25mm}
+<macros>
+\begin{document}
+<body>
+\end{document}
+\end{codeblock}
+
+\section{サポートする TeX サブセット}
+
+\subsection{設計原則}
+
+ここでいう「軽いパーサ」は、本物の TeX パーサではなく、\term{ブロック分割器} と \term{限定的なインラインスキャナ} の組み合わせである。文書全体を完全解釈するのではなく、見出し、リスト、段落、数式ブロックの境界を安定して切り出し、数式の中身は MathJax に渡す。
+
+\begin{goodbox}[重要な割り切り]
+本文構造はアプリ側で扱う。数式レイアウトは MathJax に委ねる。未知の文法は無理に理解しようとせず、未対応ブロックとして隔離する。この 3 点を守ると、初版でも壊れにくい。
+\end{goodbox}
+
+\subsection{サポートするブロック構文}
+
+\begin{longtable}{L{0.24\textwidth}L{0.24\textwidth}L{0.44\textwidth}}
+\caption{サポートするブロック構文}
+\label{tab:blocksyntax}\\
+\toprule
+\rowcolor{AccentLight}
+\textbf{種類} & \textbf{入力例} & \textbf{扱い} \\
+\midrule
+\endfirsthead
+\toprule
+\rowcolor{AccentLight}
+\textbf{種類} & \textbf{入力例} & \textbf{扱い} \\
+\midrule
+\endhead
+節見出し & \code{\textbackslash section\{...\}} & ブロック見出しとして描画する。\\
+小節見出し & \code{\textbackslash subsection\{...\}} & 一段小さい見出しとして描画する。\\
+小小節見出し & \code{\textbackslash subsubsection\{...\}} & さらに小さい見出しとして描画する。\\
+段落見出し & \code{\textbackslash paragraph\{...\}} & 独立した小見出しブロックとして描画し、見出し番号は付けない。\\
+通常段落 & 連続する通常行 & 空行までを 1 段落として描画する。\\
+箇条書き & \code{\textbackslash begin\{itemize\}} & \code{<ul>} に変換し、\code{\textbackslash item} を \code{<li>} にする。\\
+番号付き列挙 & \code{\textbackslash begin\{enumerate\}} & \code{<ol>} に変換し、\code{\textbackslash item} を \code{<li>} にする。\\
+数式ブロック & \code{\$\$...\$\$}, \code{\textbackslash[...\textbackslash]} & ディスプレイ数式として MathJax に渡す。\\
+AMS 環境 & \code{equation}, \code{align}, \code{gather} とそれぞれの \code{*} 付き & 環境全体を 1 数式ブロックとして MathJax に渡す。\\
+旧環境互換 & \code{eqnarray}, \code{eqnarray*} & 互換レイヤで \code{align} 系へ変換してプレビューする。\\
+未対応環境 & 任意の \code{\textbackslash begin\{...\}} & 解釈せず 1 ブロック隔離し、警告を出す。\\
+\bottomrule
+\end{longtable}
+
+\subsection{サポートするインライン構文}
+
+インライン構文は必要最小限に絞る。初版で保証するのは、通常テキスト、\code{\$...\$}、\code{\textbackslash(...\textbackslash)}、\code{\textbackslash LaTeX}, \code{\textbackslash TeX}、エスケープ済みの \code{\textbackslash\$}, \code{\textbackslash\%}, \code{\textbackslash\{}, \code{\textbackslash\}} である。本文装飾コマンド、たとえば \code{\textbackslash textbf} や \code{\textbackslash emph} は初版ではサポートしない。
+
+\subsection{サポートする数式環境}
+
+ディスプレイ数式で必須とする環境は \code{equation}, \code{equation*}, \code{align}, \code{align*}, \code{gather}, \code{gather*} の 6 系統である。さらに、\code{aligned}, \code{split}, \code{gathered}, \code{alignat}, \code{alignat*} は、数式ブロック内部構文としてそのまま MathJax に渡してよい。プレビュー見出しには section 系の自動番号を付ける。数式番号は初版では行わない。
+
+\subsection{マクロ仕様}
+
+新規コマンドは本文と別の新規コマンド欄に記述する。本文中の \code{\textbackslash newcommand} は定義としては解釈しない。初版でサポートするマクロ定義は、0 引数の \code{\textbackslash newcommand} のみである。\code{\textbackslash renewcommand} と \code{\textbackslash providecommand} は仕様上の将来候補だが、現行参照実装では採用していない。
+
+\begin{codeblock}[サポートするマクロ例]
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Det}{\operatorname{Det}}
+\end{codeblock}
+
+引数個数を表す \code{[1]} や \code{\#1} を含むユーザ定義は拒否し、警告欄に出す。組み込みマクロとして \code{\textbackslash slashed\{...\}} はアプリ側が提供する。
+
+\subsection{\code{\textbackslash slashed} の扱い}
+
+\code{\textbackslash slashed} は初版で必須サポートとする。参照実装では、組み込みマクロとして \code{\textbackslash slashed\#1 -> \{\textbackslash not\textbackslash !\#1\}} を MathJax に渡す。これは見た目の近似であり、完全な LaTeX 再現ではない。
+
+\subsection{簡略 EBNF}
+
+\begin{codeblock}[簡略 EBNF]
+document        ::= block*
+block           ::= heading | list | display_math | paragraph | unsupported
+heading         ::= section | subsection | subsubsection | paragraph_head
+section         ::= "\section{" inline_text "}"
+subsection      ::= "\subsection{" inline_text "}"
+subsubsection   ::= "\subsubsection{" inline_text "}"
+paragraph_head  ::= "\paragraph{" inline_text "}"
+
+list            ::= itemize | enumerate
+itemize         ::= "\begin{itemize}" list_item+ "\end{itemize}"
+enumerate       ::= "\begin{enumerate}" list_item+ "\end{enumerate}"
+list_item       ::= "\item" item_body (nested_list)*
+
+display_math    ::= display_delim | math_env | eqnarray_env
+display_delim   ::= "$$" math_source "$$"
+                  | "\[" math_source "\]"
+math_env        ::= "\begin{equation}" math_source "\end{equation}"
+                  | "\begin{equation*}" math_source "\end{equation*}"
+                  | "\begin{align}" math_source "\end{align}"
+                  | "\begin{align*}" math_source "\end{align*}"
+                  | "\begin{gather}" math_source "\end{gather}"
+                  | "\begin{gather*}" math_source "\end{gather*}"
+eqnarray_env    ::= "\begin{eqnarray}" math_source "\end{eqnarray}"
+                  | "\begin{eqnarray*}" math_source "\end{eqnarray*}"
+
+paragraph       ::= paragraph_line+
+paragraph_line  ::= line that is not blank and does not open a block
+inline_text     ::= (text | inline_math | escaped_char)*
+inline_math     ::= "$" math_source "$"
+                  | "\(" math_source "\)"
+escaped_char    ::= "\$" | "\%" | "\{" | "\}" | "\\"
+\end{codeblock}
+
+\subsection{例}
+
+\begin{codeblock}[本文例]
+\section{Test}
+This section is a test.\\
+Hard line breaks work, and inline math such as $E=mc^2$ is supported.
+
+\subsection{Small test}
+\begin{align}
+\Tr M &= 0 \\
+\Det A &= 1 \\
+\slashed{D} &= \gamma^\mu A_\mu
+\end{align}
+
+\begin{itemize}
+\item First bullet item
+\item Second bullet item
+\end{itemize}
+\end{codeblock}
+
+\begin{codeblock}[マクロ例]
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Det}{\operatorname{Det}}
+\end{codeblock}
+
+\section{パーサと互換レイヤの実装詳細}
+
+\subsection{前処理}
+
+本文と新規コマンド欄の両方に対して、最初に BOM 除去、改行の LF 正規化、末尾空白の削除を行う。コメント処理は本文と新規コマンド欄で少し異なる。本文では行末コメントを全面的に保証せず、簡単な \code{\%} を落とすだけに留める。新規コマンド欄では brace 外の trailing comment を落としてよい。
+
+\subsection{マクロパーサ}
+
+マクロパーサは 1 行単位で処理する。空行は無視し、コメント行は無視し、残りを 0 引数の \code{\textbackslash newcommand} に照合する。引数付き定義、構文が壊れた定義、同名再定義は診断に記録する。採用されたマクロは \code{Record<string, string>} へ格納し、後勝ちで上書きする。
+
+\subsection{ブロックスキャナ}
+
+ブロックスキャナは 1 パスで十分である。通常状態では、各行の先頭を見て次の優先順で判定する。
+
+\begin{enumerate}
+\item 空行なら現在の段落を閉じる。
+\item 見出しコマンドなら見出しブロックを作る。
+\item \code{\textbackslash begin\{itemize\}} または \code{\textbackslash begin\{enumerate\}} ならリスト処理に入る。
+\item ディスプレイ数式の開始なら数式ブロックへ入る。
+\item サポート外の \code{\textbackslash begin\{...\}} なら未対応ブロックへ入る。
+\item それ以外は段落へ連結する。
+\end{enumerate}
+
+各ブロックは \code{type}, \code{lineStart}, \code{lineEnd}, \code{offsetStart}, \code{offsetEnd}, \code{blockId} を持つ。\code{blockId} はプレビュー DOM の \code{data-block-id} にそのまま使う。
+
+\subsection{リスト処理}
+
+リスト環境は HTML の \code{<ul>} と \code{<ol>} に変換する。\code{\textbackslash item} の境界で項目を切り、項目本文に対して再帰的に \code{parseDocument} を呼ぶ。こうすることで、項目内の数式ブロックや入れ子リストを扱える。
+
+\subsection{\code{eqnarray} 互換レイヤ}
+
+\code{eqnarray} と \code{eqnarray*} はプレビュー用の互換レイヤで処理する。原文は保持し、プレビュー直前だけ \code{align} 系へ変換する。参照実装では、\code{a \& = \& b} のような 3 列形を \code{a \&= b} へ単純変換する。これは救済用であり、完全互換ではない。
+
+\subsection{診断}
+
+診断は \term{error}, \term{warning}, \term{info} の 3 段に分ける。error はそのブロックの描画継続に影響する場合、warning は未閉じ記号や不正なマクロ、info は互換変換や保存・復元通知に使う。
+
+\begin{table}[h]
+\centering
+\caption{代表的な診断}
+\begin{tabularx}{\textwidth}{L{0.24\textwidth}L{0.15\textwidth}Y}
+\toprule
+\rowcolor{AccentLight}
+\textbf{キー} & \textbf{レベル} & \textbf{意味} \\
+\midrule
+\code{diagUnclosedEnv} & error & 環境が閉じていない。\\
+\code{diagUnsupportedEnv} & warning & 未対応環境を隔離して表示した。\\
+\code{diagOddDollar} & warning & インライン数式の \code{\$} が閉じていない可能性がある。\\
+\code{diagMacroSyntax} & warning & マクロ定義を解釈できなかった。\\
+\code{diagMacroArgs} & warning & 引数付き \code{\textbackslash newcommand} を拒否した。\\
+\code{diagMathNestedEnv} & error & 数式環境の中に文書用の \code{\textbackslash begin}/\code{\textbackslash end} が入っている。\\
+\code{diagMathItem} & error & 数式環境の中に \code{\textbackslash item} が入っている。\\
+\code{diagItemOutsideList} & error & list 環境の外に \code{\textbackslash item} がある。\\
+\code{diagHashOutsideMacro} & warning & 素の \code{\#} がマクロ定義外にある。\\
+\code{diagMalformedFrac} & warning & \code{\textbackslash frac} が不完全である。\\
+\code{diagMathRenderError} & error & 数式レンダラが入力を解釈できなかった。\\
+\code{diagEqnarray} & info & \code{eqnarray} を互換レイヤで \code{align} 扱いにした。\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{レンダリング、PDF、ローカライズ}
+
+\subsection{レンダリング方針}
+
+プレビューはブロック単位で HTML を生成する。見出しとリストは自前 HTML、数式ブロックは MathJax、段落は text node を基礎とし、`$...$` と `\(...\)` の断片だけに TeX デリミタを残して渡す。各ブロックルートには \code{data-block-id} を必ず付与し、Sync と PDF 書き出しで参照できるようにする。段落中の \code{\\} は明示改行として描画し、数式外の誤変換を避ける。
+
+\subsection{MathJax 設定}
+
+MathJax は CHTML 出力を使い、\code{inlineMath}, \code{displayMath}, \code{processEscapes}, \code{processEnvironments} を有効にする。組み込みマクロとユーザマクロをマージした辞書を parse options に注入し、各再描画後に \code{typesetPromise} を呼ぶ。HTML 挿入系の危険な拡張は有効化しない。
+
+また、math block の内部に \code{\textbackslash begin\{enumerate\}} や \code{\textbackslash item} のような文書用構文が現れた場合は、parser は \code{diagMathNestedEnv} または \code{diagMathItem} を error として出す。これにより、MathJax が raw source を残した場合でも診断欄から原因を追える。
+
+\subsection{更新周期}
+
+本文欄と新規コマンド欄の変更は 350 ms の debounce をかける。最後の入力から 350 ms 経過した時点で再解析・再描画する。数式やリストの 1 箇所が壊れていても、他のブロックの描画は継続する。
+
+\subsection{PDF 書き出し}
+
+PDF 書き出しは、現在ページに対してブラウザの \code{print()} を呼ぶ方式とする。印刷時は CSS でソース欄、Sync、診断欄などを隠し、右ペイン中心の表示へ切り替える。出力はあくまでプレビュー画面の PDF 化であって、本物の LaTeX 組版ではない。
+
+\subsection{ローカライズ}
+
+UI 文字列は日本語と英語の 2 系統を持つ。本文とマクロの内容はそのまま保ち、ボタン、見出し、診断タイトル、ステータス文字列だけを切り替える。locale と input assist の表示状態は \code{ui.json} に保存してよい。
+
+\section{セキュリティとブラウザ制約}
+
+本アプリは任意の HTML を実行してはならない。プレビュー DOM へ本文テキストを挿入する際は、\code{textContent} または text node を用い、\code{innerHTML} で本文を流し込まない。実行時に第三者 CDN や外部 API を必須にしてはならない。
+
+\begin{warningbox}[\code{file://} 直開きについて]
+依存ライブラリは同梱可能だが、\code{file://} 直開きではフォントや印刷、ブラウザ制約の差が残る。仕様上の推奨実行形態は静的配信である。オフライン配布を行う場合も、必要なら簡易ローカルサーバ起動補助を添える。
+\end{warningbox}
+
+\section{テストと受入条件}
+
+\subsection{自動テスト}
+
+参照実装は次の 3 系統を必須テストとする。
+
+\begin{enumerate}
+\item parser, macro parser, archive, export, UI 契約の単体テスト。
+\item 静的サーバ経由で主要アセット取得と roundtrip を見るスモークテスト。
+\item 書き出し \code{.tex} の LuaLaTeX コンパイル確認。
+\item Undo と入力補助スニペット挿入の unit / smoke テスト。
+\end{enumerate}
+
+\subsection{手動確認}
+
+最低限、Chrome 系ブラウザ 1 つで、本文入力、\code{.texs} 保存読込、\code{.tex} 書き出し、印刷ダイアログ、未保存警告、言語切替、Undo、入力補助、Sync を手動確認する。今回の修正版では、左エディタが常に可読な文字色で表示されること、各ペインが内部スクロールを持つこと、\code{file://} 直開き時に案内が出ることを重点確認項目とする。
+
+\begin{goodbox}[受入条件]
+次を満たせば初版として受け入れる。\newline
+1. ソースが通常のブラウザ表示で読み取れる。\newline
+2. 主要ブロックがプレビューできる。\newline
+3. \texs 保存読込と \code{.tex} 書き出しが往復する。\newline
+4. 右ペインから PDF 化できる。\newline
+5. 未保存警告と自動退避が動く。\newline
+6. 日本語 / 英語切替が動く。
+\end{goodbox}
+
+\section{リポジトリ構成とビルド}
+
+\begin{codeblock}[リポジトリの例]
+kakutex/
+  README.md
+  package.json
+  Makefile
+  app/
+    index.html
+    styles.css
+    src/
+    vendor/mathjax/
+  docs/
+    spec/
+    user_manual/
+    admin_manual/
+    logs/
+  examples/
+  tests/
+  tools/
+  dist/
+\end{codeblock}
+
+\begin{codeblock}[配布 ZIP の例]
+kakutex-0.0.1-bundle.zip
+  app/
+  docs/
+  examples/
+  tests/
+  tools/
+  README.md
+  VERSION
+\end{codeblock}
+
+\section{生成 AI 向け実装チェックリスト}
+
+生成 AI に実装させる場合は、画面骨格、状態管理、\texs 保存読込を先に作る。次に、見出し、段落、リスト、インライン数式、ディスプレイ数式の順でパーサを追加する。その後に新規コマンド欄、\code{eqnarray} 互換、\code{\textbackslash slashed}、Sync、未保存警告、ローカライズ、印刷用 CSS を足す。最後にサンプル出力とテストを固める。
+
+\begin{goodbox}[実装順の要点]
+最初から全部を同時に作らないことが重要である。ブロック分割、数式描画、保存形式の 3 つを先に固めると、残りは UI の肉付けとして積み上がる。逆に、完全な TeX 解釈や文字単位 Sync から入ると失敗しやすい。
+\end{goodbox}
+
+\vfill
+
+\begin{center}
+\small 本仕様書は、\appname 初版の固定仕様として用いる。\\
+\small 実装時に変更する場合は \code{meta.json.version} と文書版数を必ず上げること。
+\end{center}
+
+\end{document}

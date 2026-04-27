@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KakuTeX User Manual</title>
+  <style>
+    :root { --bg: #f6f7fb; --card: #ffffff; --line: #d7dde5; --ink: #1f2937; --muted: #5b6475; --accent: #16324f; --soft: #eef3ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Inter", "Noto Sans JP", system-ui, sans-serif; color: var(--ink); background: linear-gradient(180deg, #f6f7fb 0%, #eef3ff 100%); }
+    .page { max-width: 960px; margin: 0 auto; padding: 24px 18px 44px; }
+    .manual-card { background: rgba(255,255,255,0.95); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 16px 36px rgba(15,23,42,0.08); overflow: hidden; }
+    .manual-header { padding: 22px 24px 16px; border-bottom: 1px solid var(--line); background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
+    .manual-header h1 { margin: 0; font-size: 1.8rem; color: var(--accent); }
+    .manual-nav { margin-top: 14px; display: grid; gap: 10px; }
+    .manual-lead { margin: 0; color: var(--muted); font-size: 0.95rem; }
+    .manual-chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .manual-chip { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 0 12px; border: 1px solid #b6c0d4; border-radius: 999px; text-decoration: none; color: var(--ink); background: #ffffff; }
+    .manual-body { padding: 20px 24px 30px; }
+    h1, h2, h3, h4 { color: var(--accent); scroll-margin-top: 16px; }
+    h2 { margin: 1.2em 0 0.55em; font-size: 1.32rem; }
+    h3 { margin: 1.05em 0 0.45em; font-size: 1.08rem; }
+    h4 { margin: 0.95em 0 0.38em; font-size: 0.98rem; }
+    p { margin: 0 0 0.75em; line-height: 1.72; }
+    ul, ol { margin: 0.2em 0 0.9em 1.4em; padding: 0; }
+    li { margin: 0.2em 0; line-height: 1.68; }
+    pre { margin: 0.4em 0 1em; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: #f6f8fa; overflow: auto; font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.92rem; line-height: 1.5; }
+    code { font-family: "SFMono-Regular", Consolas, monospace; background: #eef2ff; border-radius: 6px; padding: 0.1em 0.35em; }
+    @media (max-width: 720px) { .page { padding: 14px 12px 28px; } .manual-header, .manual-body { padding-left: 16px; padding-right: 16px; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <article class="manual-card">
+      <header class="manual-header">
+        <h1>KakuTeX User Manual</h1>
+        <div class="manual-nav"><p class="manual-lead">This HTML manual is generated from the same Markdown source as the PDF manual.</p><div class="manual-chip-row"><a class="manual-chip" href="#basic-operations">Basic operations</a><a class="manual-chip" href="#supported-tex-subset">Supported subset</a><a class="manual-chip" href="#known-limitations">Known limitations</a><a class="manual-chip" href="#disclaimer">Disclaimer</a><a class="manual-chip" href="kakutex-user-manual-en.pdf" target="_blank" rel="noopener noreferrer">Open PDF</a></div></div>
+      </header>
+      <div class="manual-body">
+        <h1 id="kakutex-user-manual">KakuTeX User Manual</h1>
+        <h2 id="1-overview">1. Overview</h2>
+        <p>KakuTeX is a browser-based memo app for a TeX subset. You write source on the left and read the live preview on the right. It does not run an internal LaTeX compiler. Instead, it returns a readable preview that prioritizes fast feedback.</p>
+        <p>The disclaimer is included in Section 10 and is also linked from the Info dialog.</p>
+        <h2 id="2-startup">2. Startup</h2>
+        <h3 id="local-startup">2.1 Local startup</h3>
+        <p>KakuTeX is intended to be opened through a small static server instead of opening <code>app/index.html</code> directly. After extracting the bundle, run the following command at the project root.</p>
+        <pre><code>python3 -m http.server 8000</code></pre>
+        <p>Then open the following URL in the browser.</p>
+        <pre><code>http://127.0.0.1:8000/app/</code></pre>
+        <p>This gives stable behavior for MathJax startup, fonts, save dialogs, print dialogs, and relative links. The initial sample also loads exactly as shipped, without unwanted leading indentation.</p>
+        <h3 id="2-2-when-opened-through-file">2.2 When opened through <code>file://</code></h3>
+        <p>If you open <code>app/index.html</code> directly from Finder or Explorer, the app runs through <code>file://</code>. The editor still appears, but math preview and printing may become unstable. If the startup banner appears, refer to this section and also to “10. Known limitations”.</p>
+        <p>In the current version, the startup banner links to the HTML help page anchored to “2.1 Local startup”. Full <code>file://</code> support remains a future improvement.</p>
+        <h2 id="3-screen-layout">3. Screen layout</h2>
+        <p>The screen is composed of the top menu, the optional input-assist toolbar, the left pane, the middle Sync buttons, and the right pane. The top menu keeps action buttons on the left and the KakuTeX name with version on the right. The upper part of the left pane is the main source editor. The lower part is the new-commands editor. The upper part of the right pane is the preview. The lower part is the diagnostics area. The runtime status message appears on the right side of the preview header instead of a footer bar. The Info button, or the version pill on the right, opens a dialog with the version, the author <code>Akio Tomiya (with ChatGPT5.4)</code>, the website link, and the development start date. The Help button opens the localized HTML manual in a new tab and jumps directly to “4. Basic operations”. The HTML manual also includes a link to the PDF version near the top.</p>
+        <p>The main source editor, the new-commands editor, the preview surface, and the diagnostics surface all scroll internally. When the document becomes long, use those internal scrollbars instead of relying on the full browser page.</p>
+        <p>The left editor uses a normal <code>textarea</code> to prioritize stable rendering across browsers. The earlier overlay-based highlight approach was removed because it could make text harder to read in some environments.</p>
+        <h2 id="basic-operations">4. Basic operations</h2>
+        <h3 id="4-1-create-a-new-note">4.1 Create a new note</h3>
+        <p>Press <code>New</code> to reset the app to the initial sample. If there are unsaved changes, the browser confirmation dialog appears before the reset.</p>
+        <h3 id="4-2-open-a-texs-archive">4.2 Open a <code>.texs</code> archive</h3>
+        <p>Use <code>Open .texs</code> to choose a saved archive. The current v1 app reliably reads the store-only ZIP-based <code>.texs</code> archives produced by itself.</p>
+        <h3 id="4-3-save-a-texs-archive">4.3 Save a <code>.texs</code> archive</h3>
+        <p><code>Save .texs</code> stores the current body, macros, UI settings, and metadata in a single <code>.texs</code> archive. In supported browsers running under <code>https:</code> or <code>localhost</code> / <code>127.0.0.1</code>, the native save dialog opens so that you can choose the destination and file name. In unsupported environments, the app falls back to a normal browser download.</p>
+        <h3 id="4-4-export-tex">4.4 Export <code>.tex</code></h3>
+        <p><code>Export .tex</code> creates a minimal <code>.tex</code> file. English-only notes stay lightweight. If Japanese text is detected in the body or in the macro editor, the exporter inserts <code>luatexja</code> only on the LuaLaTeX path. Supported browsers let you choose the destination and file name through the native save dialog.</p>
+        <p>The primary compilation path is the following.</p>
+        <pre><code>lualatex exported_file.tex</code></pre>
+        <p>An alternative DVI-based path is also possible.</p>
+        <pre><code>uplatex exported_file.tex
+# or
+platex exported_file.tex
+
+dvipdfmx exported_file.dvi</code></pre>
+        <p><code>pxjahyper</code> is not inserted by default. Add it yourself only if you later add <code>hyperref</code> and intentionally use a (u)pLaTeX workflow.</p>
+        <h3 id="4-5-export-pdf">4.5 Export PDF</h3>
+        <p><code>Print / PDF</code> opens the browser print dialog for the current page. During printing, CSS hides the source editor, Sync buttons, and diagnostics so that the print layout focuses on the preview pane. From there, choose “Save as PDF” in the browser. This is not a LaTeX-typeset PDF. It is a PDF of the readable preview.</p>
+        <h3 id="4-6-undo">4.6 Undo</h3>
+        <p><code>Undo</code> restores the last snapshot for whichever editor you touched most recently. The body editor and the new-commands editor keep separate lightweight histories. The current version does not implement redo yet.</p>
+        <h3 id="4-7-input-assist">4.7 Input assist</h3>
+        <p>Press <code>Input assist</code> to reveal a second toolbar below the main menu. The current version inserts the following snippets at the caret position.</p>
+        <ul>
+          <li><code>Math</code>: <code>\begin{align} ... \end{align}</code></li>
+          <li><code>Fraction</code>: <code>\frac{1}{2}</code></li>
+          <li><code>Sum</code>: <code>\sum_{i=1}^{N}</code></li>
+          <li><code>Integral</code>: <code>\int_{}^{} \mathrm{d}x</code></li>
+        </ul>
+        <p>Press the button again, now labeled <code>Simple</code>, to hide the second toolbar. The visible / hidden state is saved in autosave and in <code>.texs</code> through <code>ui.json</code>.</p>
+        <h3 id="4-8-change-the-ui-language">4.8 Change the UI language</h3>
+        <p>At first launch, the UI language is chosen from the browser language. If the browser reports Japanese, the app starts in Japanese. Otherwise it starts in English. You can switch at any time with the language button on the right. The body text and macro text themselves are not rewritten.</p>
+        <h3 id="4-9-about-dialog">4.9 About dialog</h3>
+        <p>Press <code>Info</code>, or click the version pill on the right, to open an About-style dialog. It shows the current version, the development start date <code>2026-04-19</code>, the author <code>Akio Tomiya (with ChatGPT5.4)</code>, the author page link, and a link to the disclaimer. Use it when you need to confirm the bundle version or the public author metadata.</p>
+        <h3 id="4-10-help">4.10 Help</h3>
+        <p><code>Help</code> opens the HTML manual in a new tab. When the UI is Japanese, it opens the Japanese manual. When the UI is English, it opens the English manual. The link jumps directly to “4. Basic operations” because that is usually the first section you need after launching the app. The HTML manual also links to the PDF version at the top.</p>
+        <h2 id="5-using-sync">5. Using Sync</h2>
+        <p>The middle <code>→</code> button moves the preview to the block closest to the current cursor position in the source editor. The middle <code>←</code> button moves back from the selected preview block to the corresponding source position. You can also click a preview block directly and then jump back to the source.</p>
+        <p>Sync is block-based rather than character-based. It works at the level of paragraphs, headings, math blocks, and lists, so it does not attempt exact character-position matching.</p>
+        <h2 id="supported-tex-subset">6. Supported TeX subset</h2>
+        <h3 id="6-1-headings">6.1 Headings</h3>
+        <ul>
+          <li><code>\section{...}</code></li>
+          <li><code>\subsection{...}</code></li>
+          <li><code>\subsubsection{...}</code></li>
+          <li><code>\paragraph{...}</code></li>
+        </ul>
+        <p>The preview automatically adds heading numbers. <code>\paragraph</code> is rendered as its own small heading block, but it remains unnumbered.</p>
+        <h3 id="6-2-text-commands">6.2 Text commands</h3>
+        <p>The current version handles <code>\LaTeX</code> and <code>\TeX</code> as text commands inside normal prose. This is a narrow feature intended to keep the shipped sample and ordinary notes readable.</p>
+        <h3 id="6-3-math">6.3 Math</h3>
+        <p>Inline math supports <code>$...$</code> and <code>\(...\)</code>. Display math supports <code>$$...$$</code>, <code>\[...\]</code>, <code>equation</code>, <code>equation*</code>, <code>align</code>, <code>align*</code>, <code>gather</code>, and <code>gather*</code>.</p>
+        <p><code>eqnarray</code> and <code>eqnarray*</code> are previewed through a compatibility layer that maps them to an <code>align</code>-like form. This is mainly intended to rescue older notes. The diagnostics area reports that compatibility conversion.</p>
+        <p>Inside normal text, <code>\\</code> is treated as an explicit hard line break. Inside math it keeps its usual line-break role. <code>\slashed{...}</code> is provided as a built-in macro.</p>
+        <h3 id="6-4-lists">6.4 Lists</h3>
+        <p><code>itemize</code> and <code>enumerate</code> are supported. Inside each <code>\item</code>, you can write paragraphs, inline math, display math, and nested lists.</p>
+        <h3 id="6-5-new-commands">6.5 New commands</h3>
+        <p>The new-commands editor accepts only no-argument <code>\newcommand</code> definitions. Typical examples are the following.</p>
+        <pre><code>\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Det}{\operatorname{Det}}</code></pre>
+        <p>Argumented <code>\newcommand</code> remains unsupported in v1 and is treated as a warning. <code>\slashed{...}</code> is built in.</p>
+        <p>If document-level constructs such as <code>enumerate</code> or <code>\item</code> appear inside an <code>align</code> block, the app tries not to fail silently. Instead, it reports the issue through diagnostics. It also uses heuristics to flag inputs such as <code>$\info$</code>, a bare <code>#</code>, an incomplete <code>\frac_</code>, or <code>\item</code> outside <code>itemize</code> / <code>enumerate</code>.</p>
+        <h2 id="7-example-input">7. Example input</h2>
+        <p>This is the same English sample shown at first launch.</p>
+        <pre><code>\section{Introduction}
+KakuTeX is a web app for a subset of \LaTeX with fast rendering.\\
+Hard line breaks work, and inline math such as $E=mc^2$ is supported.
+日本語も使えます。
+
+\subsection{Linear algebra}
+\begin{align}
+\Tr M &amp;= 0 \\
+\Det A &amp;= 1 \\
+\slashed{D} &amp;= \gamma^\mu A_\mu \\
+\int \mathrm{d}x \; \sin x &amp;= -\cos x + C
+\end{align}
+
+\begin{itemize}
+\item First bullet item
+\item Second bullet item
+\end{itemize}
+
+\subsubsection{Subsubsection}
+\paragraph{Paragraph} This is a short paragraph heading example.</code></pre>
+        <p>The new-commands example is the following.</p>
+        <pre><code>\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Det}{\operatorname{Det}}</code></pre>
+        <h2 id="8-texs-format">8. <code>.texs</code> format</h2>
+        <p><code>.texs</code> is a ZIP-based container. In the current version it stores the following four files.</p>
+        <ul>
+          <li><code>body.tex</code></li>
+          <li><code>macros.tex</code></li>
+          <li><code>ui.json</code></li>
+          <li><code>meta.json</code></li>
+        </ul>
+        <p><code>ui.json</code> stores <code>locale</code> and <code>inputAssist</code>. <code>meta.json</code> stores values such as the format name, generator, creation time, update time, and file name.</p>
+        <h2 id="9-autosave-and-unsaved-change-warnings">9. Autosave and unsaved-change warnings</h2>
+        <p>The editor content is autosaved to <code>localStorage</code>. If you try to close the browser window or tab with unsaved changes, the browser warning appears. The exact wording of that warning depends on the browser, so the app does not try to force custom long messages.</p>
+        <h2 id="known-limitations">10. Known limitations</h2>
+        <ul>
+          <li>Figures, bibliography, BibTeX, and complex LaTeX packages are not supported.</li>
+          <li><code>\newcommand</code> is limited to the no-argument form.</li>
+          <li>Sync is block-based rather than character-based.</li>
+          <li>PDF export is based on browser printing and is not a LaTeX-typeset PDF.</li>
+          <li><code>.texs</code> loading currently prioritizes the store-only archives saved by this app.</li>
+          <li>The left editor intentionally uses a plain textarea and does not provide syntax coloring.</li>
+          <li><code>file://</code> direct opening continues with a warning banner, but full support is not complete yet. For stable use, follow “2.1 Local startup”.</li>
+          <li>The visual appearance of <code>\slashed</code> is a simplified approximation rather than an exact LaTeX match for all possible arguments.</li>
+          <li>The native save dialog for choosing the destination and file name is available only in supported browsers running in a secure context. Unsupported environments fall back to a browser download.</li>
+          <li>Undo is currently one-way only. Redo is not implemented yet.</li>
+        </ul>
+        <h2 id="disclaimer">11. Disclaimer</h2>
+        <p>This English manual contains the disclaimer in this section. The same disclaimer is linked from the Info dialog in English UI.</p>
+        <p>KakuTeX is a lightweight tool for research notes and personal memo writing. Its display output, math preview, <code>.tex</code> export, and browser-print PDF output are provided without any warranty of correctness, completeness, or fitness for a particular purpose. When you use it for research results, submissions, business documents, lecture notes, or any other important material, you must verify the content, formulas, diagnostics, exported <code>.tex</code>, and compiled PDF yourself.</p>
+        <p>This app does not implement all of LaTeX. It supports only a limited subset. Unsupported syntax, browser differences, MathJax behavior, TeX-engine differences, missing local packages, and browser-dependent save dialogs may cause output that differs from your expectations. The author and development assistants are not responsible for data loss, wrong notation, failed compilation, or research/business damage caused by use of KakuTeX.</p>
+        <p>If you enter confidential or personal information, you are responsible for checking the publication location, browser environment, save destination, <code>.texs</code> archive handling, and local storage behavior. KakuTeX is not designed around advertising, cloud storage, or external transmission, but access control and distribution management are the responsibility of the person who deploys it.</p>
+      </div>
+    </article>
+  </div>
+</body>
+</html>

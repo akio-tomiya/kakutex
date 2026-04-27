@@ -1,0 +1,13 @@
+{
+  "name": "kakutex",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/unit/*.mjs",
+    "smoke": "node --test tests/browser/smoke.mjs",
+    "docs": "python3 tools/build_docs.py",
+    "package": "python3 tools/package_release.py",
+    "build:bundle": "python3 tools/build_bundle.py"
+  }
+}
